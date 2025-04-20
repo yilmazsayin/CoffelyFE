@@ -12,6 +12,7 @@ import Profile from "./pages/Profile/Profile.jsx";
 import Home from "./pages/Home/Home.jsx";
 import Orders from "./pages/Orders/Orders.jsx";
 import Cart from "./pages/Cart/Cart.jsx";
+import Footer from './pages/Footer/Footer.jsx'
 
 // Context
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -38,6 +39,7 @@ function App() {
               </Routes>
             </main>
           </div>
+          <Footer/>
           <ToastContainer />
         </Router>
       </CartProvider>

@@ -31,13 +31,13 @@ function App() {
             <Navbar />
             <main className="flex-fill">
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<PrivateRoute element={<Home />} />} />
                 <Route path="/login" element={<PublicRoute element={<Login />} />} />
                 <Route path="/register" element={<PublicRoute element={<Register />} />} />
                 <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
                 <Route path="/forgot-password" element={<PublicRoute element={<ForgotPassword />} />} />
                 <Route path="/orders" element={<PrivateRoute element={<Orders />} />} />
-                <Route path="/cart" element={<Cart />}/>
+                <Route path="/cart" element={<PrivateRoute element={<Cart />} />} />
                 <Route path="/admin" element={ <PrivateRoute element={<Admin />} adminRequired={true} />}/>
                 <Route path="*" element={<NotFound />} />
               </Routes>

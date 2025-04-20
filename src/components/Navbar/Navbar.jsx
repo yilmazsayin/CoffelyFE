@@ -57,15 +57,17 @@ const Navbar = () => {
         ref={collapseRef}
       >
         <ul className="navbar-nav ms-auto">
-          <li className="nav-item text-center">
-            <Link className="nav-link" to="/cart" onClick={handleNavLinkClick}>
-              <FiShoppingCart className="me-2" />
-              Sepet
-              {itemCount > 0 && (
-                <span className="badge bg-danger ms-1">{itemCount}</span>
-              )}
-            </Link>
-          </li>
+          {user && (
+            <li className="nav-item text-center">
+              <Link className="nav-link" to="/cart" onClick={handleNavLinkClick}>
+                <FiShoppingCart className="me-2" />
+                Sepet
+                {itemCount > 0 && (
+                  <span className="badge bg-danger ms-1">{itemCount}</span>
+                )}
+              </Link>
+            </li>
+          )}
 
           {user ? (
             <>

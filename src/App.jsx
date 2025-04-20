@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Ortak yapılar
 import Navbar from "./components/Navbar/Navbar.jsx";
+import PublicRoute from './components/PublicRoute/PublicRoute.jsx';
+import PrivateRoute from './components/PrivateRoute/PrivateRoute.jsx';
 
 // Sayfalar
 import Login from "./pages/Login/Login.jsx";
@@ -29,12 +31,12 @@ function App() {
             <main className="flex-fill">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<PublicRoute element={<Login />} />} />
+                <Route path="/register" element={<PublicRoute element={<Register />} />} />
+                <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+                <Route path="/forgot-password" element={<PublicRoute element={<ForgotPassword />} />} />
+                <Route path="/orders" element={<PrivateRoute element={<Orders />} />} />
+                <Route path="/cart" element={<PrivateRoute element={<Cart />}/>}/>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

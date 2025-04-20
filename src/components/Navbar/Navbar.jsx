@@ -1,17 +1,23 @@
-import React, { useRef } from "react";
+import React, { useRef, useContext } from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 import logo from "/images/logo.png";
 import {
   FiLogIn,
+  FiShoppingCart,
   FiLogOut,
+  FiPackage,
   FiUser,
+  FiBox
 } from "react-icons/fi";
+import { CartContext } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext.jsx";
 
 const Navbar = () => {
   const collapseRef = useRef();
+  const { cartItems } = useContext(CartContext);
   const { user, logout } = useAuth();
+  const itemCount = cartItems.length;
 
   const handleNavLinkClick = () => {
     if (collapseRef.current && window.innerWidth < 992) {
@@ -51,6 +57,16 @@ const Navbar = () => {
         ref={collapseRef}
       >
         <ul className="navbar-nav ms-auto">
+          <li className="nav-item text-center">
+            <Link className="nav-link" to="/cart" onClick={handleNavLinkClick}>
+              <FiShoppingCart className="me-2" />
+              Sepet
+              {itemCount > 0 && (
+                <span className="badge bg-danger ms-1">{itemCount}</span>
+              )}
+            </Link>
+          </li>
+
           {user ? (
             <>
               <li className="nav-item text-center">
@@ -63,6 +79,30 @@ const Navbar = () => {
                   Profil
                 </Link>
               </li>
+              <li className="nav-item text-center">
+                <Link
+                  className="nav-link"
+                  to="/orders"
+                  onClick={handleNavLinkClick}
+                >
+                  <FiPackage className="me-2" />
+                  Siparişler
+                </Link>
+              </li>
+
+              {user.role === "admin" && (
+                <li className="nav-item text-center">
+                  <Link
+                    className="nav-link"
+                    to="/admin"
+                    onClick={handleNavLinkClick}
+                  >
+                    <FiBox className="me-2" />
+                    Ürün Yönetimi
+                  </Link>
+                </li>
+              )}
+
               <li className="nav-item text-center">
                 <Link className="nav-link" to="/" onClick={handleLogout}>
                   <FiLogOut className="me-2" />

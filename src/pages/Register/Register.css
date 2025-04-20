@@ -1,0 +1,49 @@
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.5)
+}
+
+.register-container:before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    background: url("/images/background.jpg") no-repeat center center/cover;
+    opacity: 0.75;
+}
+
+.card {
+    padding: 1.5rem;
+    width: 500px;
+    max-width: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+
+.form-control {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    color: #333;
+    transition: all 0.3s ease;
+    max-height: 150px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+textarea.form-control {
+    min-height: 100px;
+}

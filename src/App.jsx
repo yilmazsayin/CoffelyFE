@@ -37,7 +37,7 @@ function App() {
                 <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
                 <Route path="/forgot-password" element={<PublicRoute element={<ForgotPassword />} />} />
                 <Route path="/orders" element={<PrivateRoute element={<Orders />} />} />
-                <Route path="/cart" element={<PrivateRoute element={<Cart />}/>}/>
+                <Route path="/cart" element={<Cart />}/>
                 <Route path="/admin" element={ <PrivateRoute element={<Admin />} adminRequired={true} />}/>
                 <Route path="*" element={<NotFound />} />
               </Routes>

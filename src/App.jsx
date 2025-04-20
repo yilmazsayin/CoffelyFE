@@ -7,6 +7,10 @@ import Navbar from "./components/Navbar/Navbar.jsx";
 import Login from "./pages/Login/Login.jsx";
 import Register from "./pages/Register/Register.jsx";
 import NotFound from './pages/NotFound/NotFound.jsx'
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword.jsx";
+import Profile from "./pages/Profile/Profile.jsx";
+
+
 
 // Context
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -27,6 +31,14 @@ function App() {
               <Route
                 path="/register"
                 element={<Register />}
+              />
+              <Route
+                path="/profile"
+                element={<Profile />}
+              />
+              <Route
+                path="/forgot-password"
+                element={<ForgotPassword />}
               />
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,0 +1,37 @@
+.cart-container {
+  border-radius: 10px; /* Border radius ekleniyor */
+}
+
+.cart-item-name {
+  font-size: 1rem; /* Ürün ismi fontunu küçültüyoruz */
+}
+
+.place-order-btn {
+  padding: 10px 0; /* Butona padding ekliyoruz */
+}
+
+.cart-item-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-item-remove {
+  border: none;
+  cursor: pointer;
+}
+
+.cart-total {
+  border-top: 1px solid #f1f1f1;
+  padding-top: 20px;
+}
+
+.clear-cart-btn {
+  width: 100%;
+  padding: 10px;
+}
+
+.quantity-input {
+  width: 60px;
+}

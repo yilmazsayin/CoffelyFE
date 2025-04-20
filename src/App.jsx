@@ -15,6 +15,7 @@ import Home from "./pages/Home/Home.jsx";
 import Orders from "./pages/Orders/Orders.jsx";
 import Cart from "./pages/Cart/Cart.jsx";
 import Footer from './pages/Footer/Footer.jsx'
+import Admin from './pages/Admin/Admin.jsx'
 
 // Context
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/forgot-password" element={<PublicRoute element={<ForgotPassword />} />} />
                 <Route path="/orders" element={<PrivateRoute element={<Orders />} />} />
                 <Route path="/cart" element={<PrivateRoute element={<Cart />}/>}/>
+                <Route path="/admin" element={ <PrivateRoute element={<Admin />} adminRequired={true} />}/>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

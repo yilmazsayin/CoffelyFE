@@ -1,24 +1,27 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { deleteAccount } from '../../services/userServices.js'
 import "./Profile.css";
+import toast from '../../utils/toast.js';
 
 const Profile = () => {
-  const mockUser = {
-    name: "Sahte kullanıcı adı ve soyadı",
-    phone: "+1234567890",
-    email: "test@coffely.com",
-  };
 
-  const { logout } = useAuth();
-
-  const handleDeleteAccount = () => {
+  const { user, logout } = useAuth();
+  const handleDeleteAccount = async () => {
     if (
       window.confirm(
         "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!"
       )
     ) {
-      alert("Hesabınız başarıyla silindi.");
-      logout();
+      const res = await deleteAccount()
+      if(res.success) {
+        toast.success(res.message);
+        logout();
+      }
+      else {
+        toast.error(res.message);
+        logout();
+      }
     }
   };
 
@@ -29,17 +32,17 @@ const Profile = () => {
       <div className="profile-info">
         <div className="profile-field">
           <label>Ad</label>
-          <p>{mockUser.name}</p> 
+          <p>{user.firstName}</p> 
         </div>
 
         <div className="profile-field">
           <label>Telefon</label>
-          <p>{mockUser.phone}</p>
+          <p>{user.lastName}</p>
         </div>
 
         <div className="profile-field">
           <label>E-posta</label>
-          <p>{mockUser.email}</p>
+          <p>{user.email}</p>
         </div>
       </div>
 

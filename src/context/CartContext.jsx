@@ -14,10 +14,10 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCartItems((prevItems) => {
-      const existing = prevItems.find((item) => item.id === product.id);
+      const existing = prevItems.find((item) => item.product === product.product);
       if (existing) {
         const updatedItems = prevItems.map((item) =>
-          item.id === product.id
+          item.product === product.product
             ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
@@ -32,16 +32,19 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = (productId) => {
     setCartItems((prevItems) => {
-      const updatedItems = prevItems.filter((item) => item.id !== productId);
+      const updatedItems = prevItems.filter(
+        (item) => item.product !== productId
+      );
       localStorage.setItem("cart", JSON.stringify(updatedItems));
       return updatedItems;
     });
   };
 
   const updateCartItem = (productId, quantity) => {
+    const qty = Number(quantity);
     setCartItems((prevItems) => {
       const updatedItems = prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        item.product === productId ? { ...item, quantity: qty } : item
       );
       localStorage.setItem("cart", JSON.stringify(updatedItems));
       return updatedItems;

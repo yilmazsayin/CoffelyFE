@@ -1,25 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import toast from "../../utils/toast";
 import "react-toastify/dist/ReactToastify.css";
-import "./ForgotPassword.css"; 
+import "./ForgotPassword.css";
+import { sendEmailVerification } from "../../services/authServices";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setEmail(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!", {
-      position: "top-center",
-      autoClose: 5000,
-      onClose: () => navigate("/login"),
-    });
+    setLoading(true);
+    const res = await sendEmailVerification(email, "resetPassword");
+    if (res.success) {
+      toast.success(
+        "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi!"
+      );
+      navigate("/verifyVerificationCode", { state: { type: "resetPassword", data: { email } }})
+    } else {
+      toast.error(res.message || "Bir hata oluştu.");
+    }
+    setLoading(false);
   };
 
   return (
@@ -39,12 +47,32 @@ const ForgotPassword = () => {
               onChange={handleChange}
               required
               placeholder="ornek@mail.com"
+              disabled={loading}
             />
           </div>
 
           <div className="text-center mb-3">
-            <button type="submit" className="btn btn-primary w-100 p-2">
-              Şifre Sıfırlama Bağlantısı Gönder
+            <button
+              type="submit"
+              className="btn btn-primary w-100 p-2 d-flex align-items-center justify-content-center"
+              disabled={loading}
+              style={{
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Gönderiliyor...
+                </>
+              ) : (
+                "Şifre Sıfırlama Bağlantısı Gönder"
+              )}
             </button>
           </div>
         </form>

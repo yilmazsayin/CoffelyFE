@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; 
+import { login } from "../../services/authServices";
+import { useAuth } from '../../context/AuthContext'
+import toast from '../../utils/toast.js';
+import "react-toastify/dist/ReactToastify.css";
 import "./Login.css";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; 
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +12,9 @@ const Login = () => {
     password: "",
   });
 
-  const { login } = useAuth(); 
-  const navigate = useNavigate(); 
+  // const { login } = useAuth();
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,25 +24,15 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
-
-    console.log(email, password);
-    const isLoginSuccess = login(email, password);
-    console.log('isLoginSuccess', isLoginSuccess);
-    if (isLoginSuccess) {
-      toast.success("Giriş Başarılı!", {
-        position: "top-center",
-        autoClose: 250,
-        onClose: () => navigate("/"),
-      });
+    const res = await login(email, password);
+    if (res.success) {
+      toast.success("Giriş başarılı!");
+      setUser(res.user);
     } else {
-      toast.error("Giriş Başarısız!", {
-        position: "top-center",
-        autoClose: 500,
-        onClose: () => null,
-      });
+      toast.error(res.message);
     }
   };
 

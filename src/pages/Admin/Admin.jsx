@@ -1,73 +1,208 @@
-import React, { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FiPlus, FiEdit, FiTrash } from "react-icons/fi";
+import {
+  createProduct,
+  deleteProduct,
+  fetchProducts,
+  updateProduct,
+} from "../../services/productServices";
+import toast from '../../utils/toast';
 import "./Admin.css";
+import { CartContext } from "../../context/CartContext";
 
 const Admin = () => {
+  const { removeFromCart } = useContext(CartContext);
+
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [errors, setErrors] = useState({});
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     name: "",
     price: "",
     description: "",
-    image: ""
+    image: null,
+    imagePreview: "",
   });
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "name":
+        if (!value) return "Ürün adı zorunludur";
+        if (value.length < 3) return "Ürün adı en az 3 karakter olmalıdır";
+        return "";
+      case "price":
+        if (value === "" || value === null) return "Fiyat zorunludur";
+        if (Number(value) < 0) return "Fiyat negatif olamaz";
+        return "";
+      case "description":
+        if (!value) return "Açıklama zorunludur";
+        if (value.length < 5) return "Açıklama en az 5 karakter olmalıdır";
+        return "";
+      case "image":
+        if (!value) return "Fotoğraf alanı zorunludur";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const validateProduct = (product) => {
+    const errors = {};
+    errors.name = validateField("name", product.name);
+    errors.price = validateField("price", product.price);
+    errors.description = validateField("description", product.description);
+    if (!isEditMode || !product.imagePreview) {
+      errors.image = validateField("image", product.image);
+    }
+    return errors;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCurrentProduct({ ...currentProduct, [name]: value });
+
+    setCurrentProduct((prev) => ({ ...prev, [name]: value }));
+
+    const errorMsg = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setCurrentProduct({ ...currentProduct, image: reader.result });
-    };
     if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCurrentProduct((prev) => ({
+          ...prev,
+          image: file,
+          imagePreview: reader.result,
+        }));
+
+        const errorMsg = validateField("image", file);
+        setErrors((prev) => ({ ...prev, image: errorMsg }));
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleAddProduct = () => {
-    if (!currentProduct.name || !currentProduct.price || !currentProduct.description || !currentProduct.image) return;
-    const newProduct = {
-      ...currentProduct,
-      id: Date.now(),
-    };
-    setProducts([...products, newProduct]);
-    setShowModal(false);
-    resetForm();
+  const resetForm = () => {
+    setCurrentProduct({
+      id: null,
+      name: "",
+      price: "",
+      description: "",
+      image: null,
+      imagePreview: "",
+    });
+    setErrors({});
+    setIsEditMode(false);
   };
 
-  const handleUpdateProduct = () => {
-    setProducts(products.map(p => p.id === currentProduct.id ? currentProduct : p));
+  const handleAddProduct = async () => {
+    const validationErrors = validateProduct(currentProduct);
+    setErrors(validationErrors);
+    const hasErrors = Object.values(validationErrors).some((msg) => msg !== "");
+    if (hasErrors) {
+      toast.error("Lütfen tüm alanları doğru doldurun!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("name", currentProduct.name);
+    formData.append("price", currentProduct.price);
+    formData.append("description", currentProduct.description);
+    formData.append("image", currentProduct.image);
+
+    try {
+      const res = await createProduct(formData);
+      setProducts((prev) => [...prev, res.product]);
+      setShowModal(false);
+      resetForm();
+      fetchProducts();
+      toast.success("Ürün başarıyla eklendi!");
+    } catch (error) {
+      toast.error("Ürün eklenirken hata oluştu!");
+    }
+  };
+
+  const handleUpdateProduct = async () => {
+    const validationErrors = validateProduct(currentProduct);
+    setErrors(validationErrors);
+    const hasErrors = Object.values(validationErrors).some((msg) => msg !== "");
+    if (hasErrors) {
+      toast.error("Lütfen tüm alanları doğru doldurun!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("id", currentProduct._id);
+    formData.append("name", currentProduct.name);
+    formData.append("price", currentProduct.price);
+    formData.append("description", currentProduct.description);
+    formData.append("image", currentProduct.image);
+
+    const res = await updateProduct(formData);
     setShowModal(false);
-    resetForm();
+    if (res.success) {
+      toast.success(res.message);
+      const updatedProducts = await fetchProducts();
+      if (updatedProducts.success) {
+        setProducts(updatedProducts.data);
+      } else {
+        toast.error(updatedProducts.message);
+      }
+    } else {
+      toast.error(res.message);
+    }
   };
 
   const handleEdit = (product) => {
     setIsEditMode(true);
-    setCurrentProduct(product);
+    setCurrentProduct({
+      ...product,
+      imagePreview: product.image,
+      image: null,
+    });
+    setErrors({});
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
-      setProducts(products.filter(p => p.id !== id));
+      const res = await deleteProduct(id);
+      if (res.success) {
+        setProducts(products.filter((p) => p._id !== id));
+        removeFromCart(id);
+        toast.info("Ürün silindi");
+        fetchProducts();
+      } else {
+        toast.error(res.message);
+      }
     }
   };
 
-  const resetForm = () => {
-    setCurrentProduct({ id: null, name: "", price: "", description: "", image: "" });
-    setIsEditMode(false);
-  };
+  useEffect(() => {
+    fetchProducts().then((res) => {
+      if (res.success) {
+        setProducts(res.data);
+      } else {
+        setProducts([]);
+        toast.error(res.message);
+      }
+    });
+  }, []);
+
+  console.log(currentProduct);
 
   return (
     <div className="container py-4">
       <h2 className="mb-4">Ürün Yönetimi</h2>
-      <button className="btn btn-success mb-4" onClick={() => setShowModal(true)}>
+      <button
+        className="btn btn-success mb-4"
+        onClick={() => {
+          setShowModal(true);
+          resetForm();
+        }}
+      >
         <FiPlus className="me-2" /> Ürün Ekle
       </button>
 
@@ -76,23 +211,100 @@ const Admin = () => {
           <div className="modal-container">
             <div className="modal-content">
               <div className="modal-header mb-4">
-                <h5 className="modal-title">{isEditMode ? "Ürün Güncelle" : "Ürün Ekle"}</h5>
-                <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
+                <h5 className="modal-title">
+                  {isEditMode ? "Ürün Güncelle" : "Ürün Ekle"}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                ></button>
               </div>
               <div className="modal-body">
-                {currentProduct.image && (
+                {currentProduct.imagePreview && (
                   <div className="text-center mb-3">
-                    <img src={currentProduct.image} alt="preview" style={{ maxHeight: "200px" }} className="img-thumbnail" />
+                    <img
+                      src={
+                        currentProduct.imagePreview
+                          ? currentProduct.imagePreview
+                          : currentProduct.image
+                      }
+                      alt="preview"
+                      style={{ maxHeight: "200px" }}
+                      className="img-thumbnail"
+                    />
                   </div>
                 )}
-                <input type="file" accept="image/*" className="form-control mb-3" onChange={handleImageChange} />
-                <input type="text" className="form-control mb-3" name="name" placeholder="Ürün Adı" value={currentProduct.name} onChange={handleInputChange} />
-                <input type="number" className="form-control mb-3" name="price" placeholder="Ürün Fiyatı" value={currentProduct.price} onChange={handleInputChange} />
-                <textarea className="form-control mb-3" name="description" placeholder="Ürün Açıklaması" value={currentProduct.description} onChange={handleInputChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={`form-control mb-3 ${
+                    errors.image ? "is-invalid" : ""
+                  }`}
+                  onChange={handleImageChange}
+                />
+                {errors.image && (
+                  <div className="invalid-feedback">{errors.image}</div>
+                )}
+
+                <input
+                  type="text"
+                  className={`form-control mb-3 ${
+                    errors.name ? "is-invalid" : ""
+                  }`}
+                  name="name"
+                  placeholder="Ürün Adı"
+                  value={currentProduct.name}
+                  onChange={handleInputChange}
+                />
+                {errors.name && (
+                  <div className="invalid-feedback">{errors.name}</div>
+                )}
+
+                <input
+                  type="number"
+                  className={`form-control mb-3 ${
+                    errors.price ? "is-invalid" : ""
+                  }`}
+                  name="price"
+                  placeholder="Ürün Fiyatı"
+                  value={currentProduct.price}
+                  onChange={handleInputChange}
+                />
+                {errors.price && (
+                  <div className="invalid-feedback">{errors.price}</div>
+                )}
+
+                <textarea
+                  className={`form-control mb-3 ${
+                    errors.description ? "is-invalid" : ""
+                  }`}
+                  name="description"
+                  placeholder="Ürün Açıklaması"
+                  value={currentProduct.description}
+                  onChange={handleInputChange}
+                />
+                {errors.description && (
+                  <div className="invalid-feedback">{errors.description}</div>
+                )}
               </div>
               <div className="modal-footer">
-                <button className="btn btn-secondary me-2" onClick={() => { setShowModal(false); resetForm(); }}>İptal</button>
-                <button className="btn btn-primary" onClick={isEditMode ? handleUpdateProduct : handleAddProduct}>
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                >
+                  İptal
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={isEditMode ? handleUpdateProduct : handleAddProduct}
+                >
                   {isEditMode ? "Güncelle" : "Ekle"}
                 </button>
               </div>
@@ -103,20 +315,37 @@ const Admin = () => {
 
       {products.length === 0 ? (
         <div className="text-center mt-5">
-          <img src="/images/noCoffee.png" className="noCoffee"/>
+          <img
+            src="/images/noCoffee.png"
+            className="noCoffee"
+            alt="no coffee"
+          />
           <p className="mt-3">Daha önce eklenmiş ürün yok ☕️ </p>
         </div>
       ) : (
         <div className="product-list">
-          {products.map(product => (
+          {products.map((product) => (
             <div className="product-item" key={product.id}>
-              <img src={product.image} alt={product.name} className="product-image" />
+              <img
+                src={
+                  product.imagePreview ||
+                  product.image
+                }
+                alt={product.name}
+                className="product-image"
+              />
               <span className="product-name">{product.name}</span>
               <div className="button-group">
-                <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(product)}>
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={() => handleEdit(product)}
+                >
                   <FiEdit className="me-1" /> Düzenle
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDelete(product._id)}
+                >
                   <FiTrash className="me-1" /> Sil
                 </button>
               </div>

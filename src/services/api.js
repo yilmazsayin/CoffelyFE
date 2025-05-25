@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: "https://coffelybe.onrender.com",
-  withCredentials: true,
-});
+    baseURL: 'https://coffelybe.onrender.com',
+    withCredentials: true,
+})
 
 export default api;

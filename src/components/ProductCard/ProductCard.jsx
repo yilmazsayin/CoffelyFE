@@ -1,6 +1,4 @@
-import React from "react";
 import "./ProductCard.css";
-
 const ProductCard = ({ product, onClick }) => {
   return (
     <div

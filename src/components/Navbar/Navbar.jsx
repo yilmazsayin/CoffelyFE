@@ -1,4 +1,4 @@
-import React, { useRef, useContext } from "react";
+import React, { useContext, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 import logo from "/images/logo.png";
@@ -11,7 +11,7 @@ import {
   FiBox
 } from "react-icons/fi";
 import { CartContext } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const collapseRef = useRef();
@@ -29,7 +29,7 @@ const Navbar = () => {
       );
       collapseElement.hide();
     }
-  };
+  }; 
 
   const handleLogout = () => {
     logout();
@@ -57,17 +57,15 @@ const Navbar = () => {
         ref={collapseRef}
       >
         <ul className="navbar-nav ms-auto">
-          {user && (
-            <li className="nav-item text-center">
-              <Link className="nav-link" to="/cart" onClick={handleNavLinkClick}>
-                <FiShoppingCart className="me-2" />
-                Sepet
-                {itemCount > 0 && (
-                  <span className="badge bg-danger ms-1">{itemCount}</span>
-                )}
-              </Link>
-            </li>
-          )}
+          <li className="nav-item text-center">
+            <Link className="nav-link" to="/cart" onClick={handleNavLinkClick}>
+              <FiShoppingCart className="me-2" />
+              Sepet
+              {itemCount > 0 && (
+                <span className="badge bg-danger ms-1">{itemCount}</span>
+              )}
+            </Link>
+          </li>
 
           {user ? (
             <>

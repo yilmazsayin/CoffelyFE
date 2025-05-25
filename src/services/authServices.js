@@ -2,10 +2,7 @@ import api from "./api";
 
 const register = async (userData, code) => {
   try {
-    const res = await api.post("/api/auth/register", {
-      ...userData,
-      verificationCode: code,
-    });
+    const res = await api.post("/api/auth/register", {...userData, verificationCode: code});
     return res.data;
   } catch (error) {
     return error.response.data;
@@ -63,10 +60,4 @@ const login = async (email, password) => {
   }
 };
 
-export {
-  register,
-  login,
-  verifyVerificationCode,
-  sendEmailVerification,
-  resetPassword,
-};
+export { register, login, verifyVerificationCode, sendEmailVerification, resetPassword };

@@ -1,49 +1,67 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiPackage } from "react-icons/fi";
+import { listOrders } from "../../services/orderServices";
 import "./Orders.css";
+import toast from '../../utils/toast';
+
+import moment from "moment";
+import "moment/locale/tr";
 
 const Orders = () => {
-  const orders = [
-    {
-      id: 1,
-      products: [
-        { name: "Kahve", image: "/images/filterCoffee.png" },
-        { name: "Çikolata", image: "/images/chocolate.png" },
-      ],
-      totalPrice: 35,
-      orderDate: "2025-04-10",
-      orderNumber: "ORD12345",
-    },
-    {
-      id: 2,
-      products: [
-        { name: "Kek", image: "/images/chocolate.png" },
-      ],
-      totalPrice: 25,
-      orderDate: "2025-04-12",
-      orderNumber: "ORD12346",
-    },
-  ];
+  const [orders, setOrders] = useState([]);
+  const [orderDetails, setOrderDetails] = useState([]);
+
+  const fetchOrders = async () => {
+    const res = await listOrders();
+    if(res.success) {
+      setOrders(res.data);
+    }
+    else {
+      toast.error(res.message)
+    }
+  }
+
+  useEffect(() => {
+    fetchOrders();
+  }, [])
+
+  
+  useEffect(() => {
+    console.log(orders);
+  }, [orders]);
+
 
   return (
     <div className="orders-container">
-      <h2><FiPackage className="me-2" /> Siparişlerim</h2>
+      <h2>
+        <FiPackage className="me-2" /> Siparişlerim
+      </h2>
 
       <div className="orders-list">
         {orders.length > 0 ? (
           orders.map((order) => (
-            <div key={order.id} className="order-item">
+            <div key={order._id} className="order-item">
               <div className="order-details">
                 <div className="order-info">
-                  <p>Sipariş No: {order.orderNumber}</p>
-                  <p>Tarih: {order.orderDate}</p>
-                  <p>Toplam Ücret: {order.totalPrice} TL</p>
+                  <p>Sipariş No: {order._id}</p>
+                  <p>Tarih: {moment(order.createDate).format('D MMMM YYYY, HH:mm')}</p>
+                  <p>
+                    Toplam Ücret:{" "}
+                    {order.items.reduce((total, item) => {
+                      return total + item.quantity * item.product.price;
+                    }, 0)}{" "}
+                    TL
+                  </p>
                 </div>
 
                 <div className="order-images">
-                  {order.products.map((product, index) => (
-                    <img key={index} src={product.image} alt={product.name} className="order-image" />
+                  {order.items.map((item, index) => (
+                    <img
+                      key={index}
+                      src={item.product.image}
+                      className="order-image"
+                    />
                   ))}
                 </div>
               </div>

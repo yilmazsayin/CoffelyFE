@@ -4,19 +4,11 @@ import { useAuth } from "../../context/AuthContext";
 const PrivateRoute = ({ element, adminRequired = false }) => {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return <div>Yükleniyor...</div>;
-  }
+  if (loading) return <div>Yükleniyor...</div>;
 
-  const isAdmin = user && user.role === "admin";
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (adminRequired && !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
+  if (adminRequired && user.role !== "admin") return <Navigate to="/" replace />;
 
   return element;
 };

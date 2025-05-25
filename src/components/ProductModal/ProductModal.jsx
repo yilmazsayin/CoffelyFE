@@ -1,6 +1,6 @@
-import React, { useContext } from "react";
-import { CartContext } from "../../context/CartContext.jsx";
-import { toast } from "react-toastify";
+import { useContext } from "react";
+import { CartContext } from "../../context/CartContext";
+import toast from '../../utils/toast';
 
 const ProductModal = ({
   selectedProduct,
@@ -13,12 +13,8 @@ const ProductModal = ({
   const { addToCart } = useContext(CartContext);
 
   const handleAddToCart = () => {
-    console.log("add to cart");
-    addToCart({ ...selectedProduct, quantity });
-    toast.success("Ürün başarıyla sepete eklendi.", {
-      position: "top-center",
-      autoClose: 750,
-    });
+    addToCart({ product: selectedProduct._id, quantity });
+    toast.success("Ürün başarıyla sepete eklendi.")
     closeModal();
   };
 

@@ -6,7 +6,7 @@ import {
   fetchProducts,
   updateProduct,
 } from "../../services/productServices";
-import toast from '../../utils/toast';
+import toast from "../../utils/toast";
 import "./Admin.css";
 import { CartContext } from "../../context/CartContext";
 
@@ -17,6 +17,8 @@ const Admin = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     name: "",
@@ -61,9 +63,7 @@ const Admin = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     setCurrentProduct((prev) => ({ ...prev, [name]: value }));
-
     const errorMsg = validateField(name, value);
     setErrors((prev) => ({ ...prev, [name]: errorMsg }));
   };
@@ -78,7 +78,6 @@ const Admin = () => {
           image: file,
           imagePreview: reader.result,
         }));
-
         const errorMsg = validateField("image", file);
         setErrors((prev) => ({ ...prev, image: errorMsg }));
       };
@@ -107,21 +106,24 @@ const Admin = () => {
       toast.error("Lütfen tüm alanları doğru doldurun!");
       return;
     }
+
     const formData = new FormData();
     formData.append("name", currentProduct.name);
     formData.append("price", currentProduct.price);
     formData.append("description", currentProduct.description);
     formData.append("image", currentProduct.image);
 
+    setSubmitting(true);
     try {
       const res = await createProduct(formData);
       setProducts((prev) => [...prev, res.product]);
       setShowModal(false);
       resetForm();
-      fetchProducts();
       toast.success("Ürün başarıyla eklendi!");
-    } catch (error) {
+    } catch {
       toast.error("Ürün eklenirken hata oluştu!");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -133,6 +135,7 @@ const Admin = () => {
       toast.error("Lütfen tüm alanları doğru doldurun!");
       return;
     }
+
     const formData = new FormData();
     formData.append("id", currentProduct._id);
     formData.append("name", currentProduct.name);
@@ -140,18 +143,25 @@ const Admin = () => {
     formData.append("description", currentProduct.description);
     formData.append("image", currentProduct.image);
 
-    const res = await updateProduct(formData);
-    setShowModal(false);
-    if (res.success) {
-      toast.success(res.message);
-      const updatedProducts = await fetchProducts();
-      if (updatedProducts.success) {
-        setProducts(updatedProducts.data);
+    setSubmitting(true);
+    try {
+      const res = await updateProduct(formData);
+      setShowModal(false);
+      if (res.success) {
+        toast.success(res.message);
+        const updatedProducts = await fetchProducts();
+        if (updatedProducts.success) {
+          setProducts(updatedProducts.data);
+        } else {
+          toast.error(updatedProducts.message);
+        }
       } else {
-        toast.error(updatedProducts.message);
+        toast.error(res.message);
       }
-    } else {
-      toast.error(res.message);
+    } catch {
+      toast.error("Güncelleme sırasında bir hata oluştu.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -173,7 +183,6 @@ const Admin = () => {
         setProducts(products.filter((p) => p._id !== id));
         removeFromCart(id);
         toast.info("Ürün silindi");
-        fetchProducts();
       } else {
         toast.error(res.message);
       }
@@ -181,30 +190,34 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    fetchProducts().then((res) => {
+    const fetchData = async () => {
+      setLoading(true);
+      const res = await fetchProducts();
       if (res.success) {
         setProducts(res.data);
       } else {
         setProducts([]);
         toast.error(res.message);
       }
-    });
+      setLoading(false);
+    };
+    fetchData();
   }, []);
-
-  console.log(currentProduct);
 
   return (
     <div className="container py-4">
       <h2 className="mb-4">Ürün Yönetimi</h2>
-      <button
-        className="btn btn-success mb-4"
-        onClick={() => {
-          setShowModal(true);
-          resetForm();
-        }}
-      >
-        <FiPlus className="me-2" /> Ürün Ekle
-      </button>
+      {!loading && (
+        <button
+          className="btn btn-success mb-4"
+          onClick={() => {
+            setShowModal(true);
+            resetForm();
+          }}
+        >
+          <FiPlus className="me-2" /> Ürün Ekle
+        </button>
+      )}
 
       {showModal && (
         <div className="modal-overlay">
@@ -221,17 +234,14 @@ const Admin = () => {
                     setShowModal(false);
                     resetForm();
                   }}
+                  disabled={submitting}
                 ></button>
               </div>
               <div className="modal-body">
                 {currentProduct.imagePreview && (
                   <div className="text-center mb-3">
                     <img
-                      src={
-                        currentProduct.imagePreview
-                          ? currentProduct.imagePreview
-                          : currentProduct.image
-                      }
+                      src={currentProduct.imagePreview}
                       alt="preview"
                       style={{ maxHeight: "200px" }}
                       className="img-thumbnail"
@@ -245,6 +255,7 @@ const Admin = () => {
                     errors.image ? "is-invalid" : ""
                   }`}
                   onChange={handleImageChange}
+                  disabled={submitting}
                 />
                 {errors.image && (
                   <div className="invalid-feedback">{errors.image}</div>
@@ -259,6 +270,7 @@ const Admin = () => {
                   placeholder="Ürün Adı"
                   value={currentProduct.name}
                   onChange={handleInputChange}
+                  disabled={submitting}
                 />
                 {errors.name && (
                   <div className="invalid-feedback">{errors.name}</div>
@@ -273,6 +285,7 @@ const Admin = () => {
                   placeholder="Ürün Fiyatı"
                   value={currentProduct.price}
                   onChange={handleInputChange}
+                  disabled={submitting}
                 />
                 {errors.price && (
                   <div className="invalid-feedback">{errors.price}</div>
@@ -286,6 +299,7 @@ const Admin = () => {
                   placeholder="Ürün Açıklaması"
                   value={currentProduct.description}
                   onChange={handleInputChange}
+                  disabled={submitting}
                 />
                 {errors.description && (
                   <div className="invalid-feedback">{errors.description}</div>
@@ -298,13 +312,21 @@ const Admin = () => {
                     setShowModal(false);
                     resetForm();
                   }}
+                  disabled={submitting}
                 >
                   İptal
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={isEditMode ? handleUpdateProduct : handleAddProduct}
+                  disabled={submitting}
                 >
+                  {submitting && (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    />
+                  )}
                   {isEditMode ? "Güncelle" : "Ekle"}
                 </button>
               </div>
@@ -313,7 +335,16 @@ const Admin = () => {
         </div>
       )}
 
-      {products.length === 0 ? (
+      {loading ? (
+        <div
+          className="d-flex justify-content-center align-items-center"
+          style={{ height: "40vh" }}
+        >
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+        </div>
+      ) : products.length === 0 ? (
         <div className="text-center mt-5">
           <img
             src="/images/noCoffee.png"
@@ -325,12 +356,9 @@ const Admin = () => {
       ) : (
         <div className="product-list">
           {products.map((product) => (
-            <div className="product-item" key={product.id}>
+            <div className="product-item" key={product._id}>
               <img
-                src={
-                  product.imagePreview ||
-                  product.image
-                }
+                src={product.imagePreview || product.image}
                 alt={product.name}
                 className="product-image"
               />

@@ -3,34 +3,27 @@ import { Link } from "react-router-dom";
 import { FiPackage } from "react-icons/fi";
 import { listOrders } from "../../services/orderServices";
 import "./Orders.css";
-import toast from '../../utils/toast';
-
+import toast from "../../utils/toast";
 import moment from "moment";
 import "moment/locale/tr";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [orderDetails, setOrderDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     const res = await listOrders();
-    if(res.success) {
+    if (res.success) {
       setOrders(res.data);
+    } else {
+      toast.error(res.message);
     }
-    else {
-      toast.error(res.message)
-    }
-  }
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetchOrders();
-  }, [])
-
-  
-  useEffect(() => {
-    console.log(orders);
-  }, [orders]);
-
+  }, []);
 
   return (
     <div className="orders-container">
@@ -39,13 +32,19 @@ const Orders = () => {
       </h2>
 
       <div className="orders-list">
-        {orders.length > 0 ? (
+        {loading ? (
+          <div className="d-flex justify-content-center align-items-center" style={{ height: "40vh" }}>
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Yükleniyor...</span>
+            </div>
+          </div>
+        ) : orders.length > 0 ? (
           orders.map((order) => (
             <div key={order._id} className="order-item">
               <div className="order-details">
                 <div className="order-info">
                   <p>Sipariş No: {order._id}</p>
-                  <p>Tarih: {moment(order.createDate).format('D MMMM YYYY, HH:mm')}</p>
+                  <p>Tarih: {moment(order.createDate).format("D MMMM YYYY, HH:mm")}</p>
                   <p>
                     Toplam Ücret:{" "}
                     {order.items.reduce((total, item) => {
@@ -57,11 +56,7 @@ const Orders = () => {
 
                 <div className="order-images">
                   {order.items.map((item, index) => (
-                    <img
-                      key={index}
-                      src={item.product.image}
-                      className="order-image"
-                    />
+                    <img key={index} src={item.product.image} className="order-image" />
                   ))}
                 </div>
               </div>

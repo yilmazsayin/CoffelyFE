@@ -12,8 +12,10 @@ const Home = () => {
   const [quantity, setQuantity] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // Yeni eklendi
 
   useEffect(() => {
+    setIsLoading(true); // fetch başlamadan önce
     fetchProducts().then((res) => {
       if (res.success) {
         setProducts(res.data);
@@ -21,6 +23,7 @@ const Home = () => {
         toast.error(res.message);
         setProducts([]);
       }
+      setIsLoading(false); // fetch tamamlandıktan sonra
     });
   }, []);
 
@@ -48,50 +51,60 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {products.length > 1 && (
-        <div className="row mb-4">
-          <div className="col-12 col-md-10">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Ürün ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="col-12 col-md-2 mt-2 mt-md-0">
-            <select
-              className="form-select"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-            >
-              <option value="asc">Fiyat: Artan</option>
-              <option value="desc">Fiyat: Azalan</option>
-            </select>
+      {isLoading ? (
+        <div className="spinner-wrapper d-flex justify-content-center align-items-center">
+          <div className="spinner-border text-light" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
           </div>
         </div>
-      )}
+      ) : (
+        <>
+          {products.length > 1 && (
+            <div className="row mb-4">
+              <div className="col-12 col-md-10">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Ürün ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="col-12 col-md-2 mt-2 mt-md-0">
+                <select
+                  className="form-select"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                >
+                  <option value="asc">Fiyat: Artan</option>
+                  <option value="desc">Fiyat: Azalan</option>
+                </select>
+              </div>
+            </div>
+          )}
 
-      <div className="row">
-        {filteredProducts.map((product) => (
-          <ProductCard
-            key={product._id}
-            product={product}
-            onClick={() => openModal(product)}
-          />
-        ))}
-      </div>
+          <div className="row">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                onClick={() => openModal(product)}
+              />
+            ))}
+          </div>
 
-      {modalVisible && selectedProduct && (
-        <ProductModal
-          selectedProduct={selectedProduct}
-          quantity={quantity}
-          totalPrice={totalPrice}
-          increment={increment}
-          decrement={decrement}
-          closeModal={closeModal}
-          setQuantity={setQuantity}
-        />
+          {modalVisible && selectedProduct && (
+            <ProductModal
+              selectedProduct={selectedProduct}
+              quantity={quantity}
+              totalPrice={totalPrice}
+              increment={increment}
+              decrement={decrement}
+              closeModal={closeModal}
+              setQuantity={setQuantity}
+            />
+          )}
+        </>
       )}
     </div>
   );

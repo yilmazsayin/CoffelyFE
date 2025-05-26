@@ -23,6 +23,8 @@ const Cart = () => {
     cvv: "",
   });
   const [cartItemDetails, setCartItemDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchCartItemDetails = async () => {
     let details = [];
@@ -42,7 +44,10 @@ const Cart = () => {
     const { address, cardNumber, cvv, phoneNumber } = checkoutFormData;
     if (!address || !cardNumber || !cvv || !phoneNumber) {
       toast.error("Bütün bilgileri doldurun!");
-    } else {
+      return;
+    }
+    setSubmitting(true);
+    try {
       const order = {
         user: user._id,
         items: cartItems,
@@ -57,22 +62,36 @@ const Cart = () => {
         toast.success(res.message);
         clearCart();
         setCartItemDetails([]);
+        setShowCheckoutForm(false);
         navigate("/orders");
       } else {
-        toast.success(res.message);
+        toast.error(res.message);
       }
+    } catch (error) {
+      toast.error("Sipariş verirken hata oluştu.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   useEffect(() => {
-    fetchCartItemDetails();
-  }, []);
+    fetchCartItemDetails().finally(() => setLoading(false));
+  }, [cartItems]);
 
   return (
     <div className="cart-container container py-5 bg-light my-3">
       <h1 className="text-center mb-4">Sepetim</h1>
       <div className="cart-card bg-white p-4 rounded shadow-sm">
-        {cartItemDetails.length === 0 ? (
+        {loading ? (
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ height: "40vh" }}
+          >
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Yükleniyor...</span>
+            </div>
+          </div>
+        ) : cartItemDetails.length === 0 ? (
           <div
             className="d-flex flex-column justify-content-center align-items-center"
             style={{ height: "100%" }}
@@ -83,72 +102,63 @@ const Cart = () => {
             </p>
           </div>
         ) : (
-          <div>
+          <>
             <ul className="list-unstyled">
-              {cartItemDetails.map((item) => {
-                return (
-                  <li
-                    key={item._id}
-                    className="cart-item d-flex justify-content-between align-items-center py-3 border-bottom"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="cart-item-image"
-                    />
-                    <div className="cart-item-details flex-grow-1 ms-3">
-                      <div class="flex-row d-flex justify-content-between">
-                        <h2 className="cart-item-name text-start">
-                          {item.name}
-                        </h2>
-                        <button
-                          className="cart-item-remove btn btn-danger btn-sm mt-2"
-                          onClick={() => {
-                            removeFromCart(item._id);
-                            setCartItemDetails((prev) => {
-                              const updated = prev.filter(
-                                (_item) => _item._id !== item._id
-                              );
-                              return updated;
-                            });
-                          }}
-                        >
-                          Sepetten Çıkar
-                        </button>
-                      </div>
-                      <p className="text-muted">
-                        Fiyat: {item.price.toFixed(2)}₺
-                      </p>
-                      <div className="d-flex align-items-center">
-                        <label
-                          htmlFor={`quantity-${item._id}`}
-                          className="me-2"
-                        >
-                          Miktar:
-                        </label>
-                        <input
-                          type="number"
-                          defaultValue={getCartItemFromId(item._id)?.quantity}
-                          value={getCartItemFromId(item._id)?.quantity}
-                          id={`quantity-${item.id}`}
-                          min="1"
-                          className="form-control form-control-sm quantity-input"
-                          onChange={(e) => {
-                            const valueStr = e.target.value;
-                            const value =
-                              valueStr === "" ? 1 : Number(valueStr);
-                            if (value < 1 || isNaN(value)) {
-                              updateCartItem(item._id, 1);
-                            } else {
-                              updateCartItem(item._id, value);
-                            }
-                          }}
-                        />
-                      </div>
+              {cartItemDetails.map((item) => (
+                <li
+                  key={item._id}
+                  className="cart-item d-flex justify-content-between align-items-center py-3 border-bottom"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="cart-item-image"
+                  />
+                  <div className="cart-item-details flex-grow-1 ms-3">
+                    <div className="flex-row d-flex justify-content-between">
+                      <h2 className="cart-item-name text-start">{item.name}</h2>
+                      <button
+                        className="cart-item-remove btn btn-danger btn-sm mt-2"
+                        onClick={() => {
+                          removeFromCart(item._id);
+                          setCartItemDetails((prev) =>
+                            prev.filter((_item) => _item._id !== item._id)
+                          );
+                        }}
+                      >
+                        Sepetten Çıkar
+                      </button>
                     </div>
-                  </li>
-                );
-              })}
+                    <p className="text-muted">
+                      Fiyat: {item.price.toFixed(2)}₺
+                    </p>
+                    <div className="d-flex align-items-center">
+                      <label
+                        htmlFor={`quantity-${item._id}`}
+                        className="me-2"
+                      >
+                        Miktar:
+                      </label>
+                      <input
+                        type="number"
+                        value={getCartItemFromId(item._id)?.quantity}
+                        id={`quantity-${item._id}`}
+                        min="1"
+                        className="form-control form-control-sm quantity-input"
+                        onChange={(e) => {
+                          const valueStr = e.target.value;
+                          const value =
+                            valueStr === "" ? 1 : Number(valueStr);
+                          updateCartItem(
+                            item._id,
+                            value < 1 || isNaN(value) ? 1 : value
+                          );
+                        }}
+                      />
+                    </div>
+                  </div>
+                </li>
+              ))}
             </ul>
 
             <div className="cart-total d-flex justify-content-between align-items-center mt-4">
@@ -162,7 +172,6 @@ const Cart = () => {
                 }, 0)}
                 ₺
               </p>
-
               <div className="d-flex flex-column align-items-end">
                 <button
                   className="clear-cart-btn btn btn-danger mb-2"
@@ -175,13 +184,14 @@ const Cart = () => {
                 </button>
               </div>
             </div>
+
             <button
               className="place-order-btn btn btn-primary w-100 p-2 mt-2"
               onClick={() => setShowCheckoutForm(true)}
             >
               Devam Et
             </button>
-          </div>
+          </>
         )}
       </div>
 
@@ -199,12 +209,12 @@ const Cart = () => {
               id="address"
               className="form-control"
               value={checkoutFormData.address}
-              onChange={(e) => {
+              onChange={(e) =>
                 setCheckoutFormData((prev) => ({
                   ...prev,
                   address: e.target.value,
-                }));
-              }}
+                }))
+              }
               placeholder="İstanbul, Kadıköy, Bahariye Caddesi No:12"
               rows="4"
             />
@@ -216,15 +226,15 @@ const Cart = () => {
             <input
               type="text"
               id="phoneNumber"
-              placeholder="05xxxxxxxxx"
               className="form-control"
               value={checkoutFormData.phoneNumber}
-              onChange={(e) => {
+              onChange={(e) =>
                 setCheckoutFormData((prev) => ({
                   ...prev,
                   phoneNumber: e.target.value,
-                }));
-              }}
+                }))
+              }
+              placeholder="05xxxxxxxxx"
             />
           </div>
           <div className="mb-3 d-flex justify-content-between">
@@ -235,15 +245,15 @@ const Cart = () => {
               <input
                 type="text"
                 id="cardNumber"
-                placeholder="5500 0000 0000 0004"
                 className="form-control"
                 value={checkoutFormData.cardNumber}
-                onChange={(e) => {
+                onChange={(e) =>
                   setCheckoutFormData((prev) => ({
                     ...prev,
                     cardNumber: e.target.value,
-                  }));
-                }}
+                  }))
+                }
+                placeholder="5500 0000 0000 0004"
               />
             </div>
             <div className="w-25 ms-2">
@@ -253,20 +263,30 @@ const Cart = () => {
               <input
                 type="text"
                 id="cvv"
-                placeholder="123"
                 className="form-control"
                 value={checkoutFormData.cvv}
-                onChange={(e) => {
+                onChange={(e) =>
                   setCheckoutFormData((prev) => ({
                     ...prev,
                     cvv: e.target.value,
-                  }));
-                }}
+                  }))
+                }
+                placeholder="123"
               />
             </div>
           </div>
-
-          <button className="btn btn-success w-100" onClick={handleCheckout}>
+          <button
+            className="btn btn-success w-100"
+            onClick={handleCheckout}
+            disabled={submitting}
+          >
+            {submitting && (
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
             Siparişi Tamamla
           </button>
         </div>

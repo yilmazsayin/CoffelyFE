@@ -1,61 +1,65 @@
 .orders-container {
-    padding: 20px;
-  }
-  
-  .orders-list {
-    margin-top: 20px;
-  }
-  
-  .order-item {
-    background-color: #f8f9fa;
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 5px;
-  }
-  
-  .order-details {
-    display: flex;
-    align-items: center; /* Yatayda ortalamak için */
-    justify-content: space-between;
-  }
-  
-  .order-info {
-    flex: 1; /* Bilgiler alanının genişlemesini sağlar */
-    margin-right: 20px; /* Fotoğraflarla arasına boşluk ekle */
-  }
-  
-  .order-info h5 {
-    margin: 0;
-  }
-  
-  .order-info p {
-    margin: 5px 0;
-  }
-  
-  .order-images {
-    display: flex;
-    flex-direction: row; /* Fotoğrafları yatayda hizala */
-    justify-content: flex-end; /* Fotoğrafları sağa yasla */
-  }
-  
-  .order-image {
-    width: 50px; /* Fotoğraf boyutunu küçük tutuyoruz */
-    height: 50px;
-    margin-left: 10px; /* Fotoğraflar arasında yatayda boşluk bırak */
-    object-fit: cover;
-    border-radius: 5px;
-  }
-  
-  .back-to-home {
-    margin-top: 30px;
-  }
-  
-  .back-to-home .btn {
-    text-decoration: none;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 5px;
-    text-align: center;
-  }
-  
+  padding: 20px;
+}
+
+.orders-list {
+  margin-top: 20px;
+}
+
+.order-item {
+  background-color: #f8f9fa;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.order-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-info {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.order-info h5 {
+  margin: 0;
+}
+
+.order-info p {
+  margin: 5px 0;
+}
+
+.order-images {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.order-image {
+  width: 50px;
+  height: 50px;
+  margin-left: 10px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.back-to-home {
+  margin-top: 30px;
+}
+
+.back-to-home .btn {
+  text-decoration: none;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}

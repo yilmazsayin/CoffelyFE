@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./Register.css";
-import { sendEmailVerification } from "../../services/authServices";
+import { register } from "../../services/authServices";
 import { useNavigate } from "react-router-dom";
 import toast from '../../utils/toast';
 
@@ -81,10 +81,12 @@ const Register = () => {
       return;
     }
 
-    // E-mail doğrulama kodu gönder, doğrulama sayfasına geç
+    // Doğrulama kodunu iptal ettik, direkt kayıt atıyoruz
     setLoading(true);
-    const res = await sendEmailVerification(formData.email, "register");
+    const res = await register(formData);
+    
     if (res.success) {
+      toast.success(res.message);
       setFormData({
         firstName: "",
         lastName: "",
@@ -94,7 +96,7 @@ const Register = () => {
         phone: "",
       });
       setErrors({});
-      navigate("/verifyVerificationCode", { state: { data: formData, type: "register" } });
+      navigate("/login"); 
     } else {
       toast.error(res.message);
     }
@@ -239,7 +241,7 @@ const Register = () => {
                   aria-hidden="true"
                 ></span>
               )}
-              {loading ? "Doğrulama Kodu Gönderiliyor" : "Kayıt Ol"}
+              {loading ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
             </button>
           </div>
         </form>

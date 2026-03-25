@@ -1,8 +1,8 @@
 import api from "./api";
 
-const register = async (userData, code) => {
+const register = async (userData) => {
   try {
-    const res = await api.post("/api/auth/register", {...userData, verificationCode: code});
+    const res = await api.post("/api/auth/register", userData);
     return res.data;
   } catch (error) {
     return error.response.data;

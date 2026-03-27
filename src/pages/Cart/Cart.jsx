@@ -187,7 +187,14 @@ const Cart = () => {
 
             <button
               className="place-order-btn btn btn-primary w-100 p-2 mt-2"
-              onClick={() => setShowCheckoutForm(true)}
+              onClick={() => {
+                if (!user) {
+                  toast.info("Siparişi tamamlamak için lütfen önce giriş yapın veya kayıt olun.");
+                  navigate("/login");
+                } else {
+                  setShowCheckoutForm(true);
+                }
+              }}
             >
               Devam Et
             </button>

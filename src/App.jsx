@@ -58,8 +58,9 @@ function App() {
                 />
                 <Route
                   path="/cart"
-                  element={<PrivateRoute element={<Cart />} />}
-                />
+                  element={<Cart />} 
+                  />
+                
                 <Route
                   path="/orders"
                   element={<PrivateRoute element={<Orders />} />}
